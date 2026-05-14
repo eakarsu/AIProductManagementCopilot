@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMap, FiLayers, FiBookOpen, FiCalendar, FiUsers, FiSearch, FiTarget, FiBarChart2, FiMessageSquare, FiPackage, FiSliders, FiFileText, FiAlertTriangle, FiClock, FiFlag, FiCpu } from 'react-icons/fi';
+import { FiMap, FiLayers, FiBookOpen, FiCalendar, FiUsers, FiSearch, FiTarget, FiBarChart2, FiMessageSquare, FiPackage, FiSliders, FiFileText, FiAlertTriangle, FiClock, FiFlag, FiCpu, FiZap, FiTrello, FiGrid } from 'react-icons/fi';
 
 const features = [
   { path: '/roadmap', label: 'Product Roadmap', icon: FiMap, color: '#3b82f6', desc: 'Plan and visualize your product roadmap across quarters', ai: false },
@@ -18,6 +18,17 @@ const features = [
   { path: '/risks', label: 'Risk Assessment', icon: FiAlertTriangle, color: '#ef4444', desc: 'AI risk analysis with probability and impact scoring', ai: true },
   { path: '/capacity', label: 'Team Capacity', icon: FiClock, color: '#10b981', desc: 'Plan team allocation and manage workload', ai: false },
   { path: '/okrs', label: 'OKR Tracking', icon: FiFlag, color: '#f59e0b', desc: 'Set objectives, track key results and progress', ai: false },
+  { path: '/product-health', label: 'Product Health Dashboard', icon: FiCpu, color: '#10b981', desc: 'AI health score across all modules — velocity, risks, delivery', ai: true },
+  { path: '/velocity-chart', label: 'Velocity Chart', icon: FiBarChart2, color: '#3b82f6', desc: 'Sprint velocity trends with planned vs completed story points', ai: false },
+  { path: '/competitive-analysis-tool', label: 'Competitor Analysis Tool', icon: FiTarget, color: '#ef4444', desc: 'Structured competitor matrix with features, weaknesses, opportunities', ai: true },
+  { path: '/sprint-planner', label: 'Sprint Planning Assistant', icon: FiCalendar, color: '#f59e0b', desc: 'AI recommends backlog items based on capacity and priority', ai: true },
+  { path: '/release-notes', label: 'Release Notes Generator', icon: FiPackage, color: '#f97316', desc: 'AI-generated structured release notes from completed stories', ai: true },
+  { path: '/stakeholder-update', label: 'Stakeholder Update', icon: FiUsers, color: '#ec4899', desc: 'Executive summaries for leadership communication', ai: true },
+  { path: '/roadmap-gantt', label: 'Roadmap Gantt', icon: FiGrid, color: '#3b82f6', desc: 'Timeline view of roadmap items with dates and progress', ai: true },
+  { path: '/sprint-kanban', label: 'Sprint Kanban', icon: FiTrello, color: '#f59e0b', desc: 'Drag stories across columns; AI drafts retros', ai: true },
+  { path: '/okr-tree', label: 'OKR Tree', icon: FiFlag, color: '#a855f7', desc: 'Hierarchical objectives → key results with AI alignment', ai: true },
+  { path: '/integrations', label: 'Integrations', icon: FiZap, color: '#06b6d4', desc: 'Two-way sync with Jira, Linear, Notion, GitHub, Slack', ai: false },
+  { path: '/pm-chat', label: 'PM Chat Agent', icon: FiCpu, color: '#10b981', desc: 'Context-aware chat with tool calls into your data', ai: true },
 ];
 
 export default function Dashboard() {
@@ -37,11 +48,11 @@ export default function Dashboard() {
 
       <div style={styles.statsRow}>
         <div style={{ ...styles.statCard, borderLeft: '3px solid #3b82f6' }}>
-          <div style={styles.statValue}>15</div>
+          <div style={styles.statValue}>26</div>
           <div style={styles.statLabel}>Modules Available</div>
         </div>
         <div style={{ ...styles.statCard, borderLeft: '3px solid #8b5cf6' }}>
-          <div style={styles.statValue}>8</div>
+          <div style={styles.statValue}>18</div>
           <div style={styles.statLabel}>AI-Powered Features</div>
         </div>
         <div style={{ ...styles.statCard, borderLeft: '3px solid #10b981' }}>

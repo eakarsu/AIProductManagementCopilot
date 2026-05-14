@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiCpu, FiLogOut, FiMenu, FiX, FiHome, FiMap, FiLayers, FiBookOpen, FiCalendar, FiUsers, FiSearch, FiTarget, FiBarChart2, FiMessageSquare, FiPackage, FiSliders, FiFileText, FiAlertTriangle, FiClock, FiFlag } from 'react-icons/fi';
+import { FiCpu, FiLogOut, FiMenu, FiX, FiHome, FiMap, FiLayers, FiBookOpen, FiCalendar, FiUsers, FiSearch, FiTarget, FiBarChart2, FiMessageSquare, FiPackage, FiSliders, FiFileText, FiAlertTriangle, FiClock, FiFlag, FiActivity, FiTrendingUp, FiMail, FiZap, FiTrello, FiGrid } from 'react-icons/fi';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: FiHome },
@@ -20,6 +20,36 @@ const navItems = [
   { path: '/risks', label: 'Risk Assessment', icon: FiAlertTriangle },
   { path: '/capacity', label: 'Team Capacity', icon: FiClock },
   { path: '/okrs', label: 'OKR Tracking', icon: FiFlag },
+  { path: '/ai-history', label: 'AI History', icon: FiCpu },
+  { path: '/product-health', label: 'Product Health', icon: FiActivity, ai: true },
+  { path: '/velocity-chart', label: 'Velocity Chart', icon: FiTrendingUp, ai: true },
+  { path: '/competitive-analysis-tool', label: 'Competitor Tool', icon: FiTarget, ai: true },
+  { path: '/sprint-planner', label: 'Sprint Planner AI', icon: FiCalendar, ai: true },
+  { path: '/release-notes', label: 'Release Notes AI', icon: FiPackage, ai: true },
+  { path: '/stakeholder-update', label: 'Stakeholder Update', icon: FiMail, ai: true },
+  { path: '/roadmap-gantt', label: 'Roadmap Gantt', icon: FiGrid, ai: true },
+  { path: '/sprint-kanban', label: 'Sprint Kanban', icon: FiTrello, ai: true },
+  { path: '/okr-tree', label: 'OKR Tree', icon: FiFlag, ai: true },
+  { path: '/integrations', label: 'Integrations', icon: FiZap, ai: false },
+  { path: '/pm-chat', label: 'PM Chat Agent', icon: FiCpu, ai: true },
+  { path: '/sentiment-analyze', label: 'Sentiment Analyze', icon: FiMessageSquare, ai: true },
+  { path: '/metric-anomaly-detect', label: 'Metric Anomaly', icon: FiActivity, ai: true },
+  { path: '/feature-impact-predict', label: 'Feature Impact', icon: FiZap, ai: true },
+  // === Batch 06 Gaps & Frontend Mounts ===
+  { path: '/cf-agentic-pm-orchestration', label: 'Agentic PM orchestration', icon: '✨' },
+  { path: '/cf-continuous-customer-insight-synthesis', label: 'Continuous customer insight synthesis', icon: '✨' },
+  { path: '/cf-roadmap-impact-simulator', label: 'Roadmap impact simulator', icon: '✨' },
+  { path: '/cf-stakeholder-storytelling', label: 'Stakeholder storytelling', icon: '✨' },
+  { path: '/cf-competitive-threat-detection', label: 'Competitive threat detection', icon: '✨' },
+  { path: '/gap-feedback-without-sentiment', label: 'Feedback without `/sentiment', icon: '✨' },
+  { path: '/gap-metrics-without-metric', label: 'Metrics without `/metric', icon: '✨' },
+  { path: '/gap-features-without-feature', label: 'Features without `/feature', icon: '✨' },
+  { path: '/gap-no-frontend-backend', label: 'No frontend (backend', icon: '✨' },
+  { path: '/gap-limited-integration-with-analytics-platforms-mixpa', label: 'Limited integration with analytics platforms (Mixpanel, Amplitude)', icon: '✨' },
+  { path: '/gap-no-native-jira-linear-sync', label: 'No native Jira/Linear sync', icon: '✨' },
+  { path: '/gap-no-native-slack-integration-for-updates', label: 'No native Slack integration for updates', icon: '✨' },
+  { path: '/gap-limited-user-research-tools-survey-integration', label: 'Limited user research tools (survey integration)', icon: '✨' },
+  { path: '/gap-no-file-upload-for-research-artifacts', label: 'No file upload for research artifacts', icon: '✨' }
 ];
 
 export default function Layout() {

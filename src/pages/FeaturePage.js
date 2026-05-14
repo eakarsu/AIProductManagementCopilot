@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiSave, FiChevronLeft, FiCpu, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiSave, FiChevronLeft, FiCpu, FiSearch, FiChevronRight, FiBookOpen } from 'react-icons/fi';
 import AIOutput from '../components/AIOutput';
 import * as api from '../services/api';
 
@@ -344,13 +344,38 @@ export default function FeaturePage() {
   const [aiContent, setAiContent] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
+  const [aiParsed, setAiParsed] = useState(null);
 
-  const fetchItems = useCallback(async () => {
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const PAGE_SIZE = 20;
+
+  // Stories modal state
+  const [showStoriesModal, setShowStoriesModal] = useState(false);
+  const [storiesFeatureId, setStoriesFeatureId] = useState(null);
+  const [storiesFeatureName, setStoriesFeatureName] = useState('');
+  const [generatedStories, setGeneratedStories] = useState([]);
+  const [storiesLoading, setStoriesLoading] = useState(false);
+  const [storiesSaved, setStoriesSaved] = useState(false);
+
+  const fetchItems = useCallback(async (pageNum = 1) => {
     if (!config) return;
     setLoading(true);
     try {
       const res = await config.api.getAll();
-      setItems(res.data);
+      // Handle both paginated and non-paginated responses
+      if (res.data && res.data.data && res.data.pagination) {
+        setItems(res.data.data);
+        setTotalPages(res.data.pagination.totalPages || 1);
+        setTotalItems(res.data.pagination.total || res.data.data.length);
+      } else {
+        const allItems = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        setItems(allItems);
+        setTotalPages(Math.ceil(allItems.length / PAGE_SIZE) || 1);
+        setTotalItems(allItems.length);
+      }
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
@@ -363,8 +388,10 @@ export default function FeaturePage() {
     setShowForm(false);
     setAiContent('');
     setAiError('');
+    setAiParsed(null);
     setSearchTerm('');
-    fetchItems();
+    setPage(1);
+    fetchItems(1);
   }, [feature, fetchItems]);
 
   if (!config) return <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: '80px', fontSize: '18px' }}>Feature not found</div>;
@@ -421,14 +448,44 @@ export default function FeaturePage() {
     setAiLoading(true);
     setAiError('');
     setAiContent('');
+    setAiParsed(null);
     try {
       const payload = config.aiAction.buildPayload(items);
       const res = await config.aiAction.fn(payload);
       setAiContent(res.data.content);
+      if (res.data.parsed) setAiParsed(res.data.parsed);
     } catch (err) {
       setAiError(err.response?.data?.details || err.message || 'AI request failed');
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  const handleGenerateStories = async (item) => {
+    setStoriesFeatureId(item.id);
+    setStoriesFeatureName(item.title || item.name || `Feature #${item.id}`);
+    setShowStoriesModal(true);
+    setStoriesLoading(true);
+    setGeneratedStories([]);
+    setStoriesSaved(false);
+    try {
+      const res = await api.aiGenerateStories({
+        feature: item.title || item.name,
+        context: item.description || '',
+        feature_id: item.id,
+      });
+      const parsed = res.data.parsed;
+      if (parsed?.stories) {
+        setGeneratedStories(parsed.stories);
+      }
+      // If stories were auto-persisted, mark as saved
+      if (res.data.createdStoryIds?.length > 0) {
+        setStoriesSaved(true);
+      }
+    } catch (err) {
+      console.error('Generate stories error:', err);
+    } finally {
+      setStoriesLoading(false);
     }
   };
 
@@ -437,6 +494,11 @@ export default function FeaturePage() {
     const term = searchTerm.toLowerCase();
     return Object.values(item).some(v => v && String(v).toLowerCase().includes(term));
   });
+
+  // Client-side pagination (when using non-paginated endpoint)
+  const paginatedFiltered = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const displayItems = totalPages > 1 && items.length <= PAGE_SIZE ? filtered : paginatedFiltered;
+  const displayTotalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
 
   // Detail View
   if (selectedItem && !showForm) {
@@ -535,7 +597,7 @@ export default function FeaturePage() {
             <input
               placeholder="Search..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               style={styles.searchInput}
             />
           </div>
@@ -554,59 +616,178 @@ export default function FeaturePage() {
         <AIOutput content={aiContent} loading={aiLoading} error={aiError} />
       )}
 
+      {/* Structured AI output panels */}
+      {aiParsed && feature === 'risks' && aiParsed.risks && (
+        <div style={styles.riskMatrix}>
+          <h3 style={styles.matrixTitle}>AI Risk Matrix</h3>
+          <div style={styles.riskGrid}>
+            {aiParsed.risks.map((r, i) => (
+              <div key={i} style={{ ...styles.riskCard, borderColor: r.score >= 15 ? '#ef4444' : r.score >= 9 ? '#f59e0b' : '#10b981' }}>
+                <div style={styles.riskTitle}>{r.title}</div>
+                <div style={styles.riskScores}>
+                  <span>P: {r.probability}/5</span>
+                  <span>I: {r.impact}/5</span>
+                  <span style={{ fontWeight: 700, color: r.score >= 15 ? '#ef4444' : r.score >= 9 ? '#f59e0b' : '#10b981' }}>Score: {r.score}</span>
+                </div>
+                <div style={styles.riskMitigation}>{r.mitigation}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {aiParsed && feature === 'features' && aiParsed.prioritized && (
+        <div style={styles.riskMatrix}>
+          <h3 style={styles.matrixTitle}>AI Prioritization Results</h3>
+          <div style={styles.priorityList}>
+            {aiParsed.prioritized.map((f, i) => (
+              <div key={i} style={styles.priorityItem}>
+                <span style={styles.rankBadge}>#{f.rank}</span>
+                <span style={styles.priorityName}>{f.feature_name}</span>
+                <span style={styles.priorityScore}>Score: {f.score}</span>
+                <div style={styles.frameworks}>
+                  {f.framework_scores?.moscow && <span style={styles.fwBadge}>{f.framework_scores.moscow}</span>}
+                  {f.framework_scores?.kano && <span style={{ ...styles.fwBadge, background: '#0f172a' }}>{f.framework_scores.kano}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div style={styles.loadingMsg}>Loading...</div>
       ) : filtered.length === 0 ? (
         <div style={styles.emptyMsg}>No items found. Click "New Item" to create one.</div>
       ) : (
-        <div style={styles.tableWrap}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                {config.columns.map(col => (
-                  <th key={col} style={styles.th}>
-                    {config.fields.find(f => f.key === col)?.label || col}
-                  </th>
-                ))}
-                <th style={{ ...styles.th, width: '100px', textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(item => (
-                <tr
-                  key={item.id}
-                  style={styles.tr}
-                  onClick={() => setSelectedItem(item)}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#334155'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                >
+        <>
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
                   {config.columns.map(col => (
-                    <td key={col} style={styles.td}>
-                      <CellValue field={col} value={item[col]} />
-                    </td>
+                    <th key={col} style={styles.th}>
+                      {config.fields.find(f => f.key === col)?.label || col}
+                    </th>
                   ))}
-                  <td style={{ ...styles.td, textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
-                        style={styles.actionBtn}
-                        title="Edit"
-                      >
-                        <FiEdit2 size={14} />
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                        style={{ ...styles.actionBtn, color: '#ef4444' }}
-                        title="Delete"
-                      >
-                        <FiTrash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
+                  <th style={{ ...styles.th, width: '130px', textAlign: 'center' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {displayItems.map(item => (
+                  <tr
+                    key={item.id}
+                    style={styles.tr}
+                    onClick={() => setSelectedItem(item)}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#334155'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    {config.columns.map(col => (
+                      <td key={col} style={styles.td}>
+                        <CellValue field={col} value={item[col]} />
+                      </td>
+                    ))}
+                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                        {feature === 'features' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleGenerateStories(item); }}
+                            style={{ ...styles.actionBtn, color: '#10b981' }}
+                            title="Generate Stories"
+                          >
+                            <FiBookOpen size={14} />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleEdit(item); }}
+                          style={styles.actionBtn}
+                          title="Edit"
+                        >
+                          <FiEdit2 size={14} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                          style={{ ...styles.actionBtn, color: '#ef4444' }}
+                          title="Delete"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {displayTotalPages > 1 && (
+            <div style={styles.pagination}>
+              <button
+                style={{ ...styles.pageBtn, opacity: page <= 1 ? 0.4 : 1 }}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                <FiChevronLeft size={16} />
+              </button>
+              <span style={styles.pageInfo}>Page {page} of {displayTotalPages} ({filtered.length} items)</span>
+              <button
+                style={{ ...styles.pageBtn, opacity: page >= displayTotalPages ? 0.4 : 1 }}
+                onClick={() => setPage(p => Math.min(displayTotalPages, p + 1))}
+                disabled={page >= displayTotalPages}
+              >
+                <FiChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Generate Stories Modal */}
+      {showStoriesModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowStoriesModal(false)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2 style={styles.modalTitle}><FiBookOpen size={20} style={{ marginRight: '8px' }} />Generated Stories</h2>
+              <button style={styles.modalClose} onClick={() => setShowStoriesModal(false)}><FiX size={20} /></button>
+            </div>
+            <p style={styles.modalSub}>Feature: <strong style={{ color: '#f1f5f9' }}>{storiesFeatureName}</strong></p>
+
+            {storiesLoading ? (
+              <div style={styles.loadingMsg}>Generating stories with AI...</div>
+            ) : generatedStories.length === 0 ? (
+              <div style={{ color: '#64748b', textAlign: 'center', padding: '40px 0' }}>No stories generated. Try again.</div>
+            ) : (
+              <div style={styles.storiesList}>
+                {generatedStories.map((story, i) => (
+                  <div key={i} style={styles.storyCard}>
+                    <div style={styles.storyHeader}>
+                      <span style={styles.storyTitle}>{story.title}</span>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {story.priority && <span style={styles.storyBadge}>{story.priority}</span>}
+                        {story.story_points && <span style={{ ...styles.storyBadge, background: '#1e3a5f', color: '#60a5fa' }}>{story.story_points} pts</span>}
+                      </div>
+                    </div>
+                    <p style={styles.storyDesc}>As a <em>{story.user_role}</em>, I want {story.action}, so that {story.benefit}.</p>
+                    {story.acceptance_criteria?.length > 0 && (
+                      <div style={styles.criteriaBox}>
+                        <div style={styles.criteriaTitle}>Acceptance Criteria:</div>
+                        <ul style={styles.criteriaList}>
+                          {story.acceptance_criteria.map((c, j) => <li key={j}>{c}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {storiesSaved ? (
+                  <div style={styles.savedMsg}>Stories saved to User Stories!</div>
+                ) : null}
+              </div>
+            )}
+            <div style={styles.modalFooter}>
+              <button style={styles.cancelBtn} onClick={() => setShowStoriesModal(false)}>Close</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

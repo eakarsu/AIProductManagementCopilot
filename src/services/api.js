@@ -63,5 +63,15 @@ export const aiCompetitiveAnalysis = (data) => API.post('/ai/competitive-analysi
 export const aiAnalyzeFeedback = (data) => API.post('/ai/analyze-feedback', data);
 export const aiGeneratePRD = (data) => API.post('/ai/generate-prd', data);
 export const aiAssessRisk = (data) => API.post('/ai/assess-risk', data);
+export const aiHistory = (page = 1, limit = 20) => API.get(`/ai/history?page=${page}&limit=${limit}`);
+export const aiProductHealth = () => API.get('/ai/product-health');
+export const aiStakeholderUpdate = (data) => API.post('/ai/stakeholder-update', data);
+
+// Sprint AI
+export const sprintVelocity = (id) => API.get(`/sprints/${id}/velocity`);
+export const sprintAIPlan = (id) => API.post(`/sprints/${id}/ai-plan`);
+
+// Release AI
+export const releaseAIGenerateNotes = (id) => API.post(`/releases/${id}/ai-generate-notes`);
 
 export default API;

@@ -3,8 +3,13 @@ const pool = require('../db');
 
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM team_capacity ORDER BY created_at DESC');
-    res.json(result.rows);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    const countResult = await pool.query('SELECT COUNT(*) FROM team_capacity');
+    const total = parseInt(countResult.rows[0].count);
+    const result = await pool.query('SELECT * FROM team_capacity ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset]);
+    res.json({ data: result.rows, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
   } catch (err) {
     console.error('Get capacity error:', err);
     res.status(500).json({ error: 'Failed to fetch team capacity' });

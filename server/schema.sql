@@ -216,3 +216,23 @@ CREATE TABLE IF NOT EXISTS okrs (
   current_value VARCHAR(100),
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS ai_results (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER,
+  endpoint VARCHAR(100),
+  entity_id INTEGER,
+  entity_type VARCHAR(50),
+  result TEXT,
+  result_json JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS prd_documents (
+  id SERIAL PRIMARY KEY,
+  feature_id INTEGER,
+  title VARCHAR(255),
+  content_json JSONB,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
