@@ -36,6 +36,11 @@ import GapNoNativeJiraLinearSyncPage from './pages/GapNoNativeJiraLinearSyncPage
 import GapNoNativeSlackIntegrationForUpdatesPage from './pages/GapNoNativeSlackIntegrationForUpdatesPage';
 import GapLimitedUserResearchToolsSurveyIntegrationPage from './pages/GapLimitedUserResearchToolsSurveyIntegrationPage';
 import GapNoFileUploadForResearchArtifactsPage from './pages/GapNoFileUploadForResearchArtifactsPage';
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
+
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#94a3b8' }}>Loading...</div>;
@@ -47,6 +52,10 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
