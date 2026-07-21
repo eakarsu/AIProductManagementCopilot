@@ -2,6 +2,18 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
+if (process.env.NODE_ENV === 'production' ||
+    (process.env.ALLOW_DEMO_SEED !== 'true' && process.env.SEED_ACK !== 'seed-local-pm-demo')) {
+  throw new Error('Demo seed is disabled; enable it explicitly outside production');
+}
+const demoPassword = process.env.DEMO_SEED_PASSWORD || process.env.DEMO_PASSWORD;
+if (!demoPassword || demoPassword.length < 12) {
+  throw new Error('DEMO_SEED_PASSWORD or DEMO_PASSWORD must contain at least 12 characters');
+}
+const demoEmail = process.env.DEMO_EMAIL || 'demo@pmcopilot.com';
+const demoOrganizationName = process.env.TENANT_ID || 'local-pm-demo';
+const demoProductName = process.env.DEMO_PRODUCT_NAME || 'Product Management Copilot';
+
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function seed() {
@@ -10,13 +22,43 @@ async function seed() {
     console.log('Starting seed...');
 
     // Hash password for demo user
-    const passwordHash = await bcrypt.hash('password123', 10);
+    const passwordHash = await bcrypt.hash(demoPassword, 10);
 
     // Users
-    await client.query(`DELETE FROM users WHERE email = 'demo@pmcopilot.com'`);
+    await client.query(
+      'DELETE FROM pm_memberships WHERE user_id IN (SELECT id FROM users WHERE email=$1)',
+      [demoEmail]
+    );
+    await client.query('DELETE FROM users WHERE email = $1', [demoEmail]);
     await client.query(
       `INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, $4)`,
-      ['demo@pmcopilot.com', passwordHash, 'Demo User', 'admin']
+      [demoEmail, passwordHash, 'Demo User', 'admin']
+    );
+    const organization = await client.query(
+      `INSERT INTO pm_organizations (name)
+       SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM pm_organizations WHERE name=$1)
+       RETURNING id`,
+      [demoOrganizationName]
+    );
+    const organizationId = organization.rows[0]?.id || (await client.query(
+      'SELECT id FROM pm_organizations WHERE name=$1 ORDER BY id LIMIT 1',
+      [demoOrganizationName]
+    )).rows[0].id;
+    const product = await client.query(
+      `INSERT INTO pm_products (organization_id,name,confidentiality)
+       VALUES ($1,$2,'internal')
+       ON CONFLICT (organization_id,name) DO UPDATE SET name=EXCLUDED.name
+       RETURNING id`,
+      [organizationId, demoProductName]
+    );
+    const demoUser = await client.query('SELECT id FROM users WHERE email=$1', [demoEmail]);
+    await client.query(
+      `INSERT INTO pm_memberships
+       (organization_id,product_id,user_id,role,active,can_view_confidential,can_publish_confidential)
+       VALUES ($1,$2,$3,'admin',TRUE,TRUE,TRUE)
+       ON CONFLICT (organization_id,product_id,user_id)
+       DO UPDATE SET role=EXCLUDED.role,active=TRUE,can_view_confidential=TRUE,can_publish_confidential=TRUE`,
+      [organizationId, product.rows[0].id, demoUser.rows[0].id]
     );
     console.log('Users seeded');
 

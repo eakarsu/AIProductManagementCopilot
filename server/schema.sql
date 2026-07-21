@@ -10,12 +10,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Default demo user: email: demo@pmcopilot.com, password: password123
--- bcrypt hash of 'password123' with 10 rounds
-INSERT INTO users (email, password_hash, name, role)
-VALUES ('demo@pmcopilot.com', '$2a$10$rQEY0tKMQ5y6fPzlKJQx5OWz4jGYfMpVqMKzxGGm1FGnCqV8KpKu6', 'Demo User', 'admin')
-ON CONFLICT (email) DO NOTHING;
-
 CREATE TABLE IF NOT EXISTS roadmap_items (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255),
