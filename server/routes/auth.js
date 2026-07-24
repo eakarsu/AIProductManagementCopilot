@@ -41,5 +41,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/me', auth, (req, res) => res.json({ user: req.user }));
+router.get('/me', auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT u.id,u.email,u.name,m.organization_id,m.product_id,m.role
+       FROM users u
+       JOIN pm_memberships m ON m.user_id=u.id AND m.active=TRUE
+       WHERE u.id=$1 AND m.organization_id=$2 AND m.product_id=$3
+       LIMIT 1`,
+      [req.user.id, req.user.organizationId, req.user.productId]
+    );
+    if (!result.rows[0]) return res.status(401).json({ error: 'Identity is no longer active' });
+    const row = result.rows[0];
+    return res.json({ user: { id: row.id, email: row.email, name: row.name, organizationId: row.organization_id, productId: row.product_id, role: row.role } });
+  } catch (_error) {
+    return res.status(500).json({ error: 'Identity lookup failed' });
+  }
+});
 module.exports = router;
