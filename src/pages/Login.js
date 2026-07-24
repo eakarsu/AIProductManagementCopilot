@@ -13,8 +13,8 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleDemoFill = () => {
-    setEmail('demo@pmcopilot.com');
-    setPassword('password123');
+    setEmail(process.env.REACT_APP_DEMO_EMAIL || '');
+    setPassword(process.env.REACT_APP_DEMO_PASSWORD || '');
   };
 
   const handleSubmit = async (e) => {
