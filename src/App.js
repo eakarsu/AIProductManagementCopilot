@@ -19,6 +19,7 @@ import PMChatAgent from './pages/PMChatAgent';
 import SentimentAnalyzePage from './pages/SentimentAnalyzePage';
 import MetricAnomalyDetectPage from './pages/MetricAnomalyDetectPage';
 import FeatureImpactPredictPage from './pages/FeatureImpactPredictPage';
+import ProductDevelopmentStudio from './pages/ProductDevelopmentStudio';
 import Layout from './components/Layout';
 
 // // === Batch 06 Gaps & Frontend Mounts ===
@@ -74,6 +75,7 @@ function App() {
           <Route path="sentiment-analyze" element={<SentimentAnalyzePage />} />
           <Route path="metric-anomaly-detect" element={<MetricAnomalyDetectPage />} />
           <Route path="feature-impact-predict" element={<FeatureImpactPredictPage />} />
+          <Route path="product-development-studio" element={<ProductDevelopmentStudio />} />
           <Route path=":feature" element={<FeaturePage />} />
         </Route>
       

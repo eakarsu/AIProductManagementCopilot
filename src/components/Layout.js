@@ -35,6 +35,7 @@ const navItems = [
   { path: '/sentiment-analyze', label: 'Sentiment Analyze', icon: FiMessageSquare, ai: true },
   { path: '/metric-anomaly-detect', label: 'Metric Anomaly', icon: FiActivity, ai: true },
   { path: '/feature-impact-predict', label: 'Feature Impact', icon: FiZap, ai: true },
+  { path: '/product-development-studio', label: 'Product Development Studio', icon: FiCpu, ai: true },
   // === Batch 06 Gaps & Frontend Mounts ===
   { path: '/cf-agentic-pm-orchestration', label: 'Agentic PM orchestration', icon: '✨' },
   { path: '/cf-continuous-customer-insight-synthesis', label: 'Continuous customer insight synthesis', icon: '✨' },
