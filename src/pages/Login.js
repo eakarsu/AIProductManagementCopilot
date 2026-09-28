@@ -78,7 +78,7 @@ export default function Login() {
 
           <button type="button" onClick={handleDemoFill} style={styles.demoBtn}>
             <FiZap size={18} />
-            Fill Demo Credentials
+            Auto Fill Demo Credentials
           </button>
         </form>
 
